@@ -1,4 +1,3 @@
-
 # Contains terraform-specific settings, such as required providers to provision infrastructure
 # Each provider takes a source, which is the hostname/provider type in the Terraform Registry
 # So our docker provider is fully: registry.terraform.io/kreuzwerker/docker
@@ -29,13 +28,11 @@ resource "docker_image" "container-demo" {
   build {
     context = "."
     dockerfile = "Dockerfile"
-    tag = ["container-demo:latest"]
   }
 }
 
 resource "docker_registry_image" "vm-container-demo" {
   name          = docker_image.container-demo.name
-  keep_remotely = true
 }
 
 resource "google_cloud_run_v2_service" "default" {
@@ -43,6 +40,8 @@ resource "google_cloud_run_v2_service" "default" {
   name     = "cloudrun-service"
   location = "us-central1"
   ingress = "INGRESS_TRAFFIC_ALL"
+  depends_on = [docker_registry_image.vm-container-demo]
+
 
 
   template {
